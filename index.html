@@ -1,10 +1,788 @@
-<!DOCTYPE html>
 <html>
-<body>
 
-<h2>WEBSITE IS UPDATING. TRY AGAIN IN 3 MIN</h2>
-<img src="thumb.png" width="500" height="333">
+<style>
+p.a {
+  white-space: pre;
+  color: white;
+}
+</style>
+
+<body style="background-color:black;">
+
+<canvas id="myCanvas" onload = 'move()' onclick = "clickfunc()" width="800" height="400" style=" padding-left: 0;
+    padding-right: 0;
+	
+    margin-left: auto;
+    margin-right: auto;
+	margin-top: 0px;
+    display: block;border:3px solid white;">
+</canvas>
 
 </body>
-</html>
+
+
+<script>
+var canvas = document.getElementById("myCanvas");
+var ctx = canvas.getContext("2d");
+ctx.font = "16px Arial";
+
+var canvasX = 0; 
+var canvasY = 0; 
+canvas.addEventListener("mousemove", function(e) { 
+    var cRect = canvas.getBoundingClientRect();              // Gets the CSS positions along with width/height
+    canvasX = Math.round(e.clientX - cRect.left);        // Subtract the 'left' of the canvas from the X/Y
+    canvasY = Math.round(e.clientY - cRect.top);         // positions to get make (0,0) the top left of the    
+});
+
+
+function sound(src) {
+ this.sound = document.createElement("audio");
+this.sound.src = src;
+this.sound.setAttribute("preload", "auto");
+this.sound.setAttribute("controls", "none");
+this.sound.style.display = "none";
+document.body.appendChild(this.sound);
+this.play = function(){
+this.sound.play();
+}
+this.stop = function(){
+this.sound.pause();
+}   
+}
+
+//backtrack = new sound("sounds/backtrack.mp3");
+
+var button = function(x,y,w,c,n,s,m,show) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = this.w*4/3;
+	this.c = c;
+	this.n = n;
+	this.s = s; 
+	this.m = m;
+	this.verified = false;
+	this.checking = false;
+	this.purchased = false;
+	this.show = show;
+	
+};
+
+button.prototype.draw = function() {
+
+    if (this.s == scene && this.show == "on"){	
+		var myImage = new Image(100, 200);
+		myImage.src = 'celebs/' + this.n + '.png';
+		ctx.drawImage(myImage,this.x - shiftX,this.y - shiftY,this.w,this.h);
+	}
+	
+   if (this.purchased == true && scene == this.s){ctx.drawImage(check,this.x - shiftX,this.y - shiftY,this.w,this.h);}
+	
+	if (this.checking == true && this.purchased == false){
+		this.verified = true;
+		if (this.s != scene){this.verified = false;}
+		if (points - this.c < 0){this.verified = false; if (scene == this.s){ctx.drawImage(cross,this.x - shiftX,this.y - shiftY,this.w,this.h);}}
+	}
+	
+	if (this.verified == true){
+	    if (this.purchased == false){
+		points = points - this.c; 
+		printout += this.n + this.m + "\n\n";
+
+		}
+		this.purchased = true;
+	}
+};
+
+var buttonArray = [];
+
+var cPageArray = [];
+
+
+var cPage = function(name,scene,type,c1,s1,s2,s3) {
+    this.name = name;
+	this.scene = scene;
+	this.type = type; 
+	this.c1 = c1;
+	this.s1 = s1;
+	this.s2 = s2;
+	this.s3 = s3;
+
+    this.x = 0;
+	this.y = 0;
+	this.w = 0; 
+	this.h = 0;
+	
+	this.selected = false; 
+	this.purchased = false; 
+	this.extra = "";
+	
+    this.perktop = Math.round(Math.random() * 3);
+	this.perkbottom = Math.round(Math.random() * 4);
+
+};
+
+cPage.prototype.draw = function() {
+
+
+	if (this.type == "prisoner" && this.scene == scene && this.name == sendName){
+	    this.x = 442; this.y = 156; this.w = 320; this.h = 220;
+		ctx.drawImage(prisoninfo,0,0,800,400);
+		
+	    var infoImage = new Image(100, 200);
+        infoImage.src = 'celebs/' + this.name + '.png';
+        ctx.drawImage(infoImage,177,97,197,263);
+		
+		ctx.drawImage(prisoninfoWrapper,0,0,800,400);
+		
+		ctx.font = "600 35px Times New Roman";
+		ctx.fillStyle = "#f7f3b7";
+	    ctx.fillText(String(points),664,45);
+		
+		ctx.font = "900 25px Times New Roman";
+		ctx.fillStyle = "black";
+		ctx.fillText(this.name,139,65);
+		
+		ctx.font = "900 30px Times New Roman";
+		ctx.fillStyle = "black";
+		ctx.fillText(this.s1,74,114);
+		ctx.fillText(this.s2,106,154);
+		ctx.fillText(this.s3,108,190);
+		
+		
+		if (this.extra == "maid" && this.purchased == false){points-=1; printout+="\n\nPrisoner " + this.name + " becomes your maid."; this.purchased = true; if (pCurr < 15){fade = 3; sendScene = 6;} pCurr++;}
+		if (this.extra == "harem" && this.purchased == false){points-=2; printout+="\n\nPrisoner " + this.name + " joins your harem."; this.purchased = true;  if (pCurr < 15){fade = 3; sendScene = 6;} pCurr++;}
+		if (this.extra == "execution" && this.purchased == false){printout+="\n\nPrisoner " + this.name + " has been executed."; this.purchased = true;  if (pCurr < 15){fade = 3; sendScene = 6;} pCurr++;}
+		if (this.extra == "slave" && this.purchased == false){points-=3; printout+="\n\nPrisoner " + this.name + " becomes your sex slave."; this.purchased = true;  if (pCurr < 15){fade = 3; sendScene = 6;} pCurr++;}
+        
+		//if (this.selected == true && this.purchased == false){
+		//this.purchased = true;
+		//printout+="\n\nPrisoner: " + this.name + "\n\n";
+		//}
+		
+	}//End Prisoner
+
+	if (this.type == "fighter" && this.scene == scene && this.name == sendName){
+	    this.x = 20; this.y = 230; this.w = 220; this.h = 120;
+		ctx.drawImage(fighterinfobg,0,0,800,400);
+		
+		var infoImage = new Image(100, 200);
+        infoImage.src = 'celebs/' + this.name + '.png';
+        ctx.drawImage(infoImage,250,0,300,400);
+		
+		ctx.drawImage(fighterinfo,0,0,800,400);
+	
+		
+		if (this.perktop == 0){ctx.drawImage(perktop1,0,0,800,400);}
+		if (this.perktop == 1){ctx.drawImage(perktop2,0,0,800,400);}
+		if (this.perktop == 2){ctx.drawImage(perktop3,0,0,800,400);}
+		if (this.perktop == 3){ctx.drawImage(perktop4,0,0,800,400);}
+
+		if (this.perkbottom == 0){ctx.drawImage(perkbottom1,0,0,800,400);}
+		if (this.perkbottom == 1){ctx.drawImage(perkbottom2,0,0,800,400);}
+		if (this.perkbottom == 2){ctx.drawImage(perkbottom3,0,0,800,400);}
+		if (this.perkbottom == 3){ctx.drawImage(perkbottom4,0,0,800,400);}
+		if (this.perkbottom == 4){ctx.drawImage(perkbottom5,0,0,800,400);}
+
+		ctx.font = "300 20px Times New Roman";
+		ctx.fillStyle = "white";
+		ctx.fillText(this.name,54,57);
+		
+		ctx.font = "900 25px Times New Roman";
+		ctx.fillStyle = "lightblue";
+		ctx.fillText(this.s1,110,107);
+
+		ctx.font = "900 25px Times New Roman";
+		ctx.fillStyle = "#f77d77";
+		ctx.fillText(this.s2,110,155);
+
+		ctx.font = "900 25px Times New Roman";
+		ctx.fillStyle = "#f0eb6c";
+		ctx.fillText(this.s3,110,203);
+		
+		
+		ctx.font = "900 35px Times New Roman";
+		ctx.fillStyle = "black";
+		ctx.fillText(this.c1,117,296);
+		
+		ctx.font = "600 35px Times New Roman";
+		ctx.fillStyle = "#f7f3b7";
+	    ctx.fillText(String(points),169,385);
+		
+        //ctx.strokeStyle = "#FF0000";
+ 	    //ctx.strokeRect(this.x, this.y, this.w, this.h);
+		
+		if (this.selected == true && this.purchased == false){points-=this.c1; this.purchased = true; printout+="\n\nFighter: " + this.name + "\n\n"; numChosen+=1;
+			if (this.perktop == 0){printout+="Perks: Throat Goat";}
+			if (this.perktop == 1){printout+="Perks: Sexy Stripper";}
+			if (this.perktop == 2){printout+="Perks: Masseuse";}
+			if (this.perktop == 3){printout+="Perks: Mutual Masturbators";}
+
+	        if (this.perkbottom == 0){printout+=" & Mommy Milkers";}
+			if (this.perkbottom == 1){printout+=" & Dominatrix";}
+			if (this.perkbottom == 2){printout+=" & Submissive Slut";}
+			if (this.perkbottom == 3){printout+=" & Naughty Nurse";}
+			if (this.perkbottom == 4){printout+=" & Maid";}
+
+			teamAgility += this.s1;
+			teamStrength += this.s2;
+		    teamStamina += this.s3;
+            chosenArray.push(this.name);
+		}
+		
+      	if (this.selected == true && this.purchased == true){ctx.drawImage(selectedimg,0,0,800,400);}
+
+	}
+	
+	
+}
+
+
+//buttonArray.push(new button(40,50,200,3,"Alexis Ren",1, ": custom message here","on"));
+
+function clickfunc(){
+
+for(var i = 0; i < buttonArray.length ; i++) {
+			if (canvasX > buttonArray[i].x - shiftX && canvasX < buttonArray[i].x + buttonArray[i].w - shiftX){
+				if (canvasY > buttonArray[i].y - shiftY && canvasY < buttonArray[i].y + buttonArray[i].h - shiftY){
+					if (scene == buttonArray[i].s){buttonArray[i].checking = true;}
+				}
+				
+			}
+			
+			
+			
+}
+
+for(var i = 0; i < cPageArray.length ; i++) {
+	if (scene == cPageArray[i].scene && canvasX > cPageArray[i].x && canvasX < cPageArray[i].x + cPageArray[i].w && canvasY > cPageArray[i].y && canvasY < cPageArray[i].w + cPageArray[i].h && points - cPageArray[i].c1 > -1){
+		cPageArray[i].selected = true;
+		if (scene == 6 && canvasY > 154 && canvasY < 200 && canvasX > 430 && canvasX < 753){
+			cPageArray[i].extra = "execution";
+		}
+		if (scene == 6 && canvasY > 205 && canvasY < 258 && canvasX > 430 && canvasX < 753){
+			if (points <= 0){displaywarning = 1;}
+			if (points > 0){cPageArray[i].extra = "maid";}
+		}
+		if (scene == 6 && canvasY > 264 && canvasY < 313 && canvasX > 430 && canvasX < 753){
+			if (points <= 1){displaywarning = 1;}
+			if (points > 1){cPageArray[i].extra = "harem";}
+		}
+		if (scene == 6 && canvasY > 316 && canvasY < 374 && canvasX > 430 && canvasX < 753){
+			if (points <= 2){displaywarning = 1;}
+			if (points > 2){cPageArray[i].extra = "slave";}
+		}
+	}
+}
+
+if (scene == -18 && canvasX > 90 && canvasX < 530 && canvasY > 300 && canvasY < 400){fade = 1; sendScene = 0;}
+if (scene == -19 && canvasX > 190 && canvasX < 600 && canvasY > 300 && canvasY < 400){fade = 1; sendScene = -18;}
+if (scene == -20 && canvasX > 200 && canvasX < 590 && canvasY > 250 && canvasY < 335){fade = 1; sendScene = -19;}
+
+if (scene == 0 && fade == 0 && canvasX > 45 && canvasX < 270 && canvasY > 65 && canvasY < 390){fade = 1; sendScene = 1; sendName = celebArray[curr];}
+if (scene == 0 && fade == 0 && canvasX > 280 && canvasX < 520 && canvasY > 65 && canvasY < 390){fade = 1; sendScene = 1; sendName = celebArray[curr+1];}
+if (scene == 0 && fade == 0 && canvasX > 525 && canvasX < 760 && canvasY > 65 && canvasY < 390){fade = 1; sendScene = 1; sendName = celebArray[curr+2];}
+
+if (scene == 5 && canvasX > 330 && canvasX < 706 && canvasY > 330 && canvasY < 400){fade = 1; sendScene = 6;}
+
+if (scene == 4 && canvasX > 390 && canvasX < 775 && canvasY > 90 && canvasY < 150){printout+="\n\nGal Gadot was sent to the guillotine."; fade = 1; sendScene = 5;}
+if (scene == 4 && canvasX > 390 && canvasX < 775 && canvasY > 160 && canvasY < 228 && points > 0){points-=1; printout+="\n\nGal Gadot becomes your maid."; fade = 1; sendScene = 5;}
+if (scene == 4 && canvasX > 390 && canvasX < 775 && canvasY > 245 && canvasY < 308 && points > 1){points-=2; printout+="\n\nGal Gadot becomes your mistress."; fade = 1; sendScene = 5;}
+if (scene == 4 && canvasX > 390 && canvasX < 775 && canvasY > 320 && canvasY < 382 && points > 2){points-=3; printout+="\n\nGal Gadot becomes your sex slave."; fade = 1; sendScene = 5;}
+
+if (scene == 3 && canvasX > 400 && canvasX < 770 && canvasY > 320 && canvasY < 390 && defeat == false){fade = 1; sendScene = 4;}
+if (scene == 3 && canvasX > 0 && canvasX < 283 && canvasY > 296 && canvasY < 388 && defeat == true){fade = 1; sendScene = 7; copytoclipboard(printout);}
+
+if (scene == 2 && canvasX > 190 && canvasY > 290){
+	if (teamAgility + teamStamina + teamStrength < 60){defeat = true;}
+	console.log(teamAgility + teamStamina + teamStrength);
+	fade = 1; sendScene = 3;
+
+}
+
+if (scene == 1 && canvasX > 560 && canvasY > 330){fade = 1; sendScene = 0;}
+
+if (scene == 0 && canvasX < 33 && curr != 0){curr -= 3;}
+if (scene == 0 && canvasX > 760 && curr != 48){curr += 3;}
+
+if (numChosen > 7 && scene == 1){fade = 1; sendScene = 2;}
+
+if (scene == 6 && pCurr == 15 || pCurr == 16){fade = 1; sendScene = 7; copytoclipboard(printout)}
+}//End clickfunc
+
+var myVar = setInterval(move, 20);
+
+var scene = -20; 
+
+var points = 40;
+
+var shiftX = 0;
+
+var shiftY = 0;
+
+var printout = "";
+
+var fade = 0; 
+
+var sendScene = 0; 
+
+var brightFac = 0;
+
+var curr = 0;
+
+var sendName = 0;
+
+var numChosen = 0; 
+
+var teamAgility = 0;
+var teamStrength = 0;
+var teamStamina = 0;
+
+var teamTimer = 0;
+
+var displaywarning = 0;
+var displaytimer = 0;
+var animY = 0;
+
+var defeat = false; 
+
+var chosenArray = [];
+
+var celebArray = ["Gemma Arterton","Maria Pedraza","Kaya Scodelario","Maddie Ziegler"
+,"Mena Suvari","Kendall Jenner","Charlotte Flair","Bella Hadid","Nathalie Emmanuel",
+"Demi Lovato","Nikki Bella","Saoirse Ronan","Ariana Grande","Rose Leslie","Olivia Wilde",
+"Emilia Clarke","Laura Marano","Aimee Carrero","Lindsay Arnold","Oana Gregory",
+"Cher Lloyd","Paris Berelc","Jade Thirlwall","Alicia Keys","Carrie Underwood","Freida Pinto",
+"Ashley Greene","Lucy Hale","Amber Rose","Daniella Monet","Odeya Rush","JoJo Levesque",
+"Zara Larsson","Kelli Berglund","Kate Bosworth","Brianna Hildebrand","Drew Barrymore",
+"Caylee Cowan","Georgia Hirst","Diane Guerrero","Iggy Azalea","Kelsey Chow","Inbar Lavi",
+"Lucy Pinder","Debby Ryan","Alex Morgan","Lizzy Caplan","Lili Simmons","Olga Kurylenko",
+"Margarita Levieva","Inanna Sarkis"];
+
+
+//var cPage = function(name,scene,type,info,c1,s1,s2,s3) {
+//Agility, Strength, Stamina
+
+
+cPageArray.push(new cPage("Olga Kurylenko",1,"fighter",1,3,2,2));
+cPageArray.push(new cPage("Margarita Levieva",1,"fighter",1,2,2,3));  
+cPageArray.push(new cPage("Inanna Sarkis",1,"fighter",3,4,2,3));
+
+cPageArray.push(new cPage("Alex Morgan",1,"fighter",2,5,3,5));
+cPageArray.push(new cPage("Lizzy Caplan",1,"fighter",1,4,1,3));  
+cPageArray.push(new cPage("Lili Simmons",1,"fighter",2,3,2,3));
+
+cPageArray.push(new cPage("Inbar Lavi",1,"fighter",2,4,2,2));
+cPageArray.push(new cPage("Lucy Pinder",1,"fighter",2,2,4,3));  
+cPageArray.push(new cPage("Debby Ryan",1,"fighter",3,4,2,3));
+
+cPageArray.push(new cPage("Diane Guerrero",1,"fighter",3,3,1,4));
+cPageArray.push(new cPage("Iggy Azalea",1,"fighter",3,2,3,1));  
+cPageArray.push(new cPage("Kelsey Chow",1,"fighter",1,2,2,2));
+
+cPageArray.push(new cPage("Odeya Rush",1,"fighter",1,4,1,3));
+cPageArray.push(new cPage("JoJo Levesque",1,"fighter",2,2,3,2));  
+cPageArray.push(new cPage("Zara Larsson",1,"fighter",2,4,2,3));
+
+cPageArray.push(new cPage("Kelli Berglund",1,"fighter",1,5,2,4));
+cPageArray.push(new cPage("Kate Bosworth",1,"fighter",2,3,3,2));  
+cPageArray.push(new cPage("Brianna Hildebrand",1,"fighter",1,3,2,3));
+
+cPageArray.push(new cPage("Drew Barrymore",1,"fighter",3,2,3,1));
+cPageArray.push(new cPage("Caylee Cowan",1,"fighter",2,4,1,3));  
+cPageArray.push(new cPage("Georgia Hirst",1,"fighter",2,1,3,2));
+
+cPageArray.push(new cPage("Gemma Arterton",1,"fighter",1,2,3,1)); //20.7 
+cPageArray.push(new cPage("Maria Pedraza",1,"fighter",1,2,2,2));  //19.6
+cPageArray.push(new cPage("Kaya Scodelario",1,"fighter",2,3,2,3)); //19.5
+
+cPageArray.push(new cPage("Maddie Ziegler",1,"fighter",2,2,3,1));  //21.3
+cPageArray.push(new cPage("Mena Suvari",1,"fighter",1,3,1,2));     //18.2
+cPageArray.push(new cPage("Kendall Jenner",1,"fighter",3,3,2,2));  //18.7 *
+
+cPageArray.push(new cPage("Charlotte Flair",1,"fighter",2,3,5,3));  //20.5 * 
+cPageArray.push(new cPage("Bella Hadid",1,"fighter",3,3,2,4));      //17.9 * 
+cPageArray.push(new cPage("Nathalie Emmanuel",1,"fighter",3,4,2,3)); //18.9
+
+cPageArray.push(new cPage("Demi Lovato",1,"fighter",3,2,3,3)); //21.4
+cPageArray.push(new cPage("Nikki Bella",1,"fighter",2,3,5,4)); //20.2
+cPageArray.push(new cPage("Saoirse Ronan",1,"fighter",3,4,2,3)); //19.5
+
+cPageArray.push(new cPage("Ariana Grande",1,"fighter",4,4,1,4)); //20.3
+cPageArray.push(new cPage("Rose Leslie",1,"fighter",1,3,2,4));   //19.5
+cPageArray.push(new cPage("Olivia Wilde",1,"fighter",2,4,1,3));  //18.0
+
+cPageArray.push(new cPage("Emilia Clarke",1,"fighter",4,3,2,2));
+cPageArray.push(new cPage("Laura Marano",1,"fighter",1,4,1,3));  
+cPageArray.push(new cPage("Aimee Carrero",1,"fighter",1,5,1,4)); 
+
+cPageArray.push(new cPage("Lindsay Arnold",1,"fighter",1,4,2,3));
+cPageArray.push(new cPage("Oana Gregory",1,"fighter",1,2,2,2));  
+cPageArray.push(new cPage("Cher Lloyd",1,"fighter",2,4,2,4));
+
+cPageArray.push(new cPage("Paris Berelc",1,"fighter",2,3,2,3));
+cPageArray.push(new cPage("Jade Thirlwall",1,"fighter",2,3,2,4));  
+cPageArray.push(new cPage("Alicia Keys",1,"fighter",2,4,2,2));
+
+cPageArray.push(new cPage("Carrie Underwood",1,"fighter",3,2,3,1));
+cPageArray.push(new cPage("Freida Pinto",1,"fighter",1,3,1,3));  
+cPageArray.push(new cPage("Ashley Greene",1,"fighter",1,4,2,3));
+
+cPageArray.push(new cPage("Lucy Hale",1,"fighter",3,4,2,3));
+cPageArray.push(new cPage("Amber Rose",1,"fighter",2,2,4,1));  
+cPageArray.push(new cPage("Daniella Monet",1,"fighter",2,3,3,2));
+
+var prisonersArray = ["Jennette McCurdy","Katherine McNamara","Kiernan Shipka","Seolhyun Kim",
+"Brooklyn Decker","Kira Kosarin","Peyton List","Eva Green","Billie Eilish","Isabelle Fuhrman",
+"Brittany Snow","Jessica Nigri","Behati Prinsloo","Thomasin Mckenzie","Emma Watson","Amanda Cerny"];
+
+var pCurr = 0;
+
+cPageArray.push(new cPage("Jennette McCurdy",6,"prisoner",0,30,"5-2",112));  
+cPageArray.push(new cPage("Katherine McNamara",6,"prisoner",0,26,"5-5",115));  
+cPageArray.push(new cPage("Kiernan Shipka",6,"prisoner",0,22,"5-2",102));  
+cPageArray.push(new cPage("Seolhyun Kim",6,"prisoner",0,27,"5-6",103));  
+cPageArray.push(new cPage("Brooklyn Decker",6,"prisoner",0,36,"5-9",117));  
+cPageArray.push(new cPage("Kira Kosarin",6,"prisoner",0,36,"5-8",121));  
+cPageArray.push(new cPage("Peyton List",6,"prisoner",0,36,"5-7",116));  
+
+cPageArray.push(new cPage("Eva Green",6,"prisoner",0,42,"5-7",117));  
+cPageArray.push(new cPage("Billie Eilish",6,"prisoner",0,20,"5-3",134));  
+cPageArray.push(new cPage("Isabelle Fuhrman",6,"prisoner",0,25,"5-3",110));  
+cPageArray.push(new cPage("Brittany Snow",6,"prisoner",0,36,"5-4",128));  
+cPageArray.push(new cPage("Jessica Nigri",6,"prisoner",0,32,"5-7",130));  
+cPageArray.push(new cPage("Behati Prinsloo",6,"prisoner",0,34,"5-11",117));  
+cPageArray.push(new cPage("Thomasin Mckenzie",6,"prisoner",0,21,"5-5",114));  
+cPageArray.push(new cPage("Emma Watson",6,"prisoner",0,32,"5-5",114));  
+cPageArray.push(new cPage("Amanda Cerny",6,"prisoner",0,31,"5-7",132));  
+
+
+function move() {
+
+//BG
+ctx.fillStyle = "black";
+ctx.fillRect(0,0, 800, 400);
+
+ctx.fillStyle = "gray";
+ctx.fillRect(0,400, 800, 400);
+
+ctx.font = "20px Arial";
+ctx.fillStyle = "white";
+ctx.fillText("X: " + canvasX,4,420);
+ctx.fillText("Y: " + canvasY,3,440);
+
+ctx.fillText("shiftX: " + shiftX,220,420);
+ctx.fillText("shiftY: " + shiftY,220,440);
+
+
+ctx.fillText("Scene: " + scene,80,420);
+ctx.fillText("Points: " + points,80,440);
+
+
+ctx.fillText("pCurr: " + pCurr,400,420);
+ctx.fillText("sendName: " + sendName,400,440);
+
+
+if (scene == -20){ctx.drawImage(intro,0,0,800,400);}
+if (scene == -19){ctx.drawImage(intro2,0,0,800,400);}
+if (scene == -18){ctx.drawImage(intro3,0,0,800,400);}
+
+if (scene == 2){
+	ctx.drawImage(allchosen,0,0,800,400);
+	 
+	 
+	 for(var i = 0; i < chosenArray.length ; i++) {
+	 var printImage = new Image(100, 200);
+    printImage.src = 'celebs/' + chosenArray[i] + '.png';
+    ctx.drawImage(printImage,0+100*i,120,100,125);
+	 }
+	
+	ctx.drawImage(allchosenWrap,0,0,800,400);
+
+}
+
+if (scene == 3){
+
+   if (defeat == true){
+	ctx.drawImage(defeatimg,0,0,800,400);
+	
+	var printImages = new Image(100, 200);
+	var printImages2 = new Image(100, 200);
+	var printImages3 = new Image(100, 200);
+
+    printImages.src = 'celebs/' + chosenArray[2] + '.png';
+    ctx.drawImage(printImages,333,156,150,200);
+	
+	printImages2.src = 'celebs/' + chosenArray[4] + '.png';
+    ctx.drawImage(printImages2,333 + 150,156,150,200);
+	
+	printImages3.src = 'celebs/' + chosenArray[6] + '.png';
+    ctx.drawImage(printImages3,333 + 300,156,150,200);
+	
+    ctx.drawImage(defeatWrapper,0,0,800,400);
+   }
+   
+   if (defeat == false){
+      ctx.drawImage(victoryimg,0,0,800,400);
+   }
+
+}
+
+if (scene == 4){
+    ctx.drawImage(fategal,0,0,800,400);
+	ctx.font = "600 50px Times New Roman";
+    ctx.fillStyle = "#f7f3b7";
+	ctx.fillText(String(points),242,370);
+}
+
+if (scene == 5){
+    ctx.drawImage(prisonimg,0,0,800,400);
+}
+
+
+if (scene == 7){
+    ctx.drawImage(ending,0,0,800,400);
+}
+
+if (scene == 0){
+		ctx.drawImage(fighterbg,0,0,800,400);
+		ctx.drawImage(fighter,0,0,800,400);
+		
+		if (curr == 0){ctx.drawImage(rightarrow,0,0,800,400);}
+		if (curr > 0 && curr < 48){ctx.drawImage(sidearrows,0,0,800,400);}
+		if (curr == 48){ctx.drawImage(leftarrow,0,0,800,400);}
+		
+      if (numChosen > 0){
+	    teamTimer+=0.5; if (teamTimer > 99){teamTimer = 0;}
+		if (String(teamAgility).length == "1"){ctx.font = "900 23px Times New Roman";}
+		if (String(teamAgility).length == "2"){ctx.font = "900 17px Times New Roman";}
+		if (String(teamStrength).length == "2"){ctx.font = "900 17px Times New Roman";}
+		if (String(teamStamina).length == "2"){ctx.font = "900 17px Times New Roman";}
+
+		if (teamTimer < 33){ctx.drawImage(teamA,0,0,800,400);  ctx.fillStyle = "lightblue"; ctx.fillText(teamAgility,287,50);}
+		if (teamTimer >= 33 && teamTimer < 66){ctx.drawImage(teamS,0,0,800,400); ctx.fillStyle = "red"; ctx.fillText(teamStrength,287,50);}
+		if (teamTimer >= 66){ctx.drawImage(teamS2,0,0,800,400); ctx.fillStyle = "orange"; ctx.fillText(teamStamina,287,50);}
+		
+	  }
+
+        ctx.font = "600 25px Times New Roman";
+		ctx.fillStyle = "black";
+		ctx.fillText(numChosen,567,28);
+
+		ctx.font = "600 40px Times New Roman";
+		ctx.fillStyle = "#f7f3b7";
+	    ctx.fillText(String(points),160,35);
+
+		var firstCeleb = new Image(100, 200);
+	    firstCeleb.src = 'celebs/' + celebArray[0 + curr] + '.png';
+		var secondCeleb = new Image(100, 200);
+	    secondCeleb.src = 'celebs/' + celebArray[1 + curr] + '.png';
+		var thirdCeleb = new Image(100, 200);
+	    thirdCeleb.src = 'celebs/' + celebArray[2 + curr] + '.png';
+		
+		ctx.drawImage(firstCeleb,59 + 240*0,66,200,267);
+		ctx.drawImage(secondCeleb,59 + 240*1,66,200,267);
+		ctx.drawImage(thirdCeleb,59 + 240*2,66,200,267);
+		
+        ctx.drawImage(wrapper,37,60,243,333);
+	    ctx.drawImage(wrapper,37 + 240,60,243,333);
+		ctx.drawImage(wrapper,37 + 240*2,60,243,333);
+		
+		ctx.font = "900 20px Times New Roman";
+        ctx.fillStyle = "black";
+	    ctx.fillText(celebArray[curr],90,358);
+	    ctx.fillText(celebArray[curr+1],330,358);
+	    ctx.fillText(celebArray[curr+2],565,358);
+
+}//END SCENE 0
+
+//Prototypes
+for(var i = 0; i < buttonArray.length ; i++) {
+        buttonArray[i].draw();
+}
+
+for(var i = 0; i < cPageArray.length ; i++) {
+        cPageArray[i].draw();
+}
+
+//Display Warning
+if (displaywarning == 1){
+	displaytimer+=3;
+	if (animY < 400 && displaytimer < 150){animY+=50;}
+	console.log(animY);
+	ctx.drawImage(outsign,0,-400 + animY,800,400);
+	if (displaytimer > 150 && displaytimer < 200){animY-=100;}
+	if (displaytimer > 200){displaytimer = 0; displaywarning = 0; animY = 0;}
+}
+
+//Fade
+if (fade == 1){brightFac += 10;
+
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400);}
+if (brightFac >= 10 && brightFac < 20){ctx.drawImage(black10,0,0,800,400);}
+if (brightFac >= 20 && brightFac < 30){ctx.drawImage(black20,0,0,800,400);}
+if (brightFac >= 30 && brightFac < 40){ctx.drawImage(black30,0,0,800,400);}
+if (brightFac >= 40 && brightFac < 50){ctx.drawImage(black40,0,0,800,400);}
+if (brightFac >= 50 && brightFac < 60){ctx.drawImage(black50,0,0,800,400);}
+if (brightFac >= 60 && brightFac < 70){ctx.drawImage(black60,0,0,800,400);}
+if (brightFac >= 70 && brightFac < 80){ctx.drawImage(black70,0,0,800,400);}
+if (brightFac >= 80 && brightFac < 90){ctx.drawImage(black80,0,0,800,400);}
+if (brightFac >= 90 && brightFac < 100){ctx.drawImage(black90,0,0,800,400);}
+if (brightFac >= 100 && brightFac < 110){ctx.drawImage(black100,0,0,800,400);}
+if (brightFac >= 110){ctx.drawImage(black100,0,0,800,400); fade = 2; scene = sendScene; if (scene == 6){sendName = prisonersArray[pCurr];}}
+
+}
+
+if (fade == 2){brightFac -= 20;
+
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400);}
+if (brightFac >= 10 && brightFac < 20){ctx.drawImage(black10,0,0,800,400);}
+if (brightFac >= 20 && brightFac < 30){ctx.drawImage(black20,0,0,800,400);}
+if (brightFac >= 30 && brightFac < 40){ctx.drawImage(black30,0,0,800,400);}
+if (brightFac >= 40 && brightFac < 50){ctx.drawImage(black40,0,0,800,400);}
+if (brightFac >= 50 && brightFac < 60){ctx.drawImage(black50,0,0,800,400);}
+if (brightFac >= 60 && brightFac < 70){ctx.drawImage(black60,0,0,800,400);}
+if (brightFac >= 70 && brightFac < 80){ctx.drawImage(black70,0,0,800,400);}
+if (brightFac >= 80 && brightFac < 90){ctx.drawImage(black80,0,0,800,400);}
+if (brightFac >= 90 && brightFac < 100){ctx.drawImage(black90,0,0,800,400);}
+if (brightFac >= 100 && brightFac < 110){ctx.drawImage(black100,0,0,800,400);}
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400); fade = 0; brightFac = 0; }
+
+}
+
+
+if (fade == 3){
+
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400);brightFac += 5;}
+if (brightFac >= 10 && brightFac < 20){ctx.drawImage(law10,0,0,800,400); brightFac += 3;}
+if (brightFac >= 20 && brightFac < 30){ctx.drawImage(law20,0,0,800,400);brightFac += 3;}
+if (brightFac >= 30 && brightFac < 40){ctx.drawImage(law30,0,0,800,400); brightFac += 5;}
+if (brightFac >= 40 && brightFac < 50){ctx.drawImage(law40,0,0,800,400); brightFac += 5;}
+if (brightFac >= 50 && brightFac < 60){ctx.drawImage(law50,0,0,800,400); brightFac += 5;}
+if (brightFac >= 60 && brightFac < 70){ctx.drawImage(law60,0,0,800,400); brightFac += 4;}
+if (brightFac >= 70 && brightFac < 80){ctx.drawImage(law70,0,0,800,400); brightFac += 3;}
+if (brightFac >= 80 && brightFac < 90){ctx.drawImage(law80,0,0,800,400); brightFac += 2;}
+if (brightFac >= 90 && brightFac < 100){ctx.drawImage(law90,0,0,800,400); brightFac += 2;}
+if (brightFac >= 100 && brightFac < 110){ctx.drawImage(law100,0,0,800,400); brightFac += 2;}
+if (brightFac >= 110){ctx.drawImage(black100,0,0,800,400); fade = 4; scene = sendScene; sendName = prisonersArray[pCurr];}
+
+}
+
+if (fade == 4){brightFac -= 10;
+
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400);}
+if (brightFac >= 10 && brightFac < 20){ctx.drawImage(law10,0,0,800,400);}
+if (brightFac >= 20 && brightFac < 30){ctx.drawImage(law20,0,0,800,400);}
+if (brightFac >= 30 && brightFac < 40){ctx.drawImage(law30,0,0,800,400);}
+if (brightFac >= 40 && brightFac < 50){ctx.drawImage(law40,0,0,800,400);}
+if (brightFac >= 50 && brightFac < 60){ctx.drawImage(law50,0,0,800,400);}
+if (brightFac >= 60 && brightFac < 70){ctx.drawImage(law60,0,0,800,400);}
+if (brightFac >= 70 && brightFac < 80){ctx.drawImage(law70,0,0,800,400);}
+if (brightFac >= 80 && brightFac < 90){ctx.drawImage(law80,0,0,800,400);}
+if (brightFac >= 90 && brightFac < 100){ctx.drawImage(law90,0,0,800,400);}
+if (brightFac >= 100 && brightFac < 110){ctx.drawImage(law100,0,0,800,400);}
+if (brightFac < 10){ctx.drawImage(black10,0,0,800,400); fade = 0; brightFac = 0; sendName = prisonersArray[pCurr];}
+
+}
+
+
+document.getElementById("demo").innerHTML = printout; 
+
+
+}//End of FUNCTION
+
+function copytoclipboard(text) {
+   const elem = document.createElement('textarea');
+   elem.value = text;
+   document.body.appendChild(elem);
+   elem.select();
+   document.execCommand('copy');
+   document.body.removeChild(elem);
+}
+
+</script>
+
+<p class="a" id = "demo" value = ""></p>
+
+<img id="check"  style="display:none; visibility:hidden;" src="gui/check.png" alt="">
+<img id="cross"  style="display:none; visibility:hidden;" src="gui/cross.png" alt="">
+
+
+<img id="intro"  style="display:none; visibility:hidden;" src="menu/intro.png" alt="">
+<img id="intro2"  style="display:none; visibility:hidden;" src="menu/intro2.png" alt="">
+<img id="intro3"  style="display:none; visibility:hidden;" src="menu/intro3.png" alt="">
+
+<img id="victoryimg"  style="display:none; visibility:hidden;" src="menu/victory.png" alt="">
+<img id="defeatimg"  style="display:none; visibility:hidden;" src="menu/defeat.png" alt="">
+<img id="defeatWrapper"  style="display:none; visibility:hidden;" src="menu/defeatWrapper.png" alt="">
+
+<img id="fighterinfo"  style="display:none; visibility:hidden;" src="menu/fighterinfo.png" alt="">
+<img id="fighterinfobg"  style="display:none; visibility:hidden;" src="menu/fighterinfobg.png" alt="">
+<img id="prisonimg"  style="display:none; visibility:hidden;" src="menu/prisonimg.png" alt="">
+
+<img id="wrapper"  style="display:none; visibility:hidden;" src="gui/wrapper.png" alt="">
+
+<img id="fighter"  style="display:none; visibility:hidden;" src="menu/fighter.png" alt="">
+<img id="fighterbg"  style="display:none; visibility:hidden;" src="menu/fighterbg.png" alt="">
+
+<img id="allchosen"  style="display:none; visibility:hidden;" src="menu/allchosen.png" alt="">
+<img id="allchosenWrap"  style="display:none; visibility:hidden;" src="menu/allchosenWrap.png" alt="">
+
+<img id="prisoninfo"  style="display:none; visibility:hidden;" src="menu/prisonerinfo.png" alt="">
+<img id="prisoninfoWrapper"  style="display:none; visibility:hidden;" src="menu/prisonerinfoWrapper.png" alt="">
+
+<img id="fategal"  style="display:none; visibility:hidden;" src="menu/fategal.png" alt="">
+<img id="ending"  style="display:none; visibility:hidden;" src="menu/ending.png" alt="">
+
+
+<img id="sidearrows"  style="display:none; visibility:hidden;" src="gui/sidearrows.png" alt="">
+<img id="rightarrow"  style="display:none; visibility:hidden;" src="gui/rightarrow.png" alt="">
+<img id="leftarrow"  style="display:none; visibility:hidden;" src="gui/leftarrow.png" alt="">
+
+<img id="selectedimg"  style="display:none; visibility:hidden;" src="gui/selectedimg.png" alt="">
+
+
+<img id="law10"  style="display:none; visibility:hidden;" src="fade/law10.png" alt="">
+<img id="law20"  style="display:none; visibility:hidden;" src="fade/law20.png" alt="">
+<img id="law30"  style="display:none; visibility:hidden;" src="fade/law30.png" alt="">
+<img id="law40"  style="display:none; visibility:hidden;" src="fade/law40.png" alt="">
+<img id="law50"  style="display:none; visibility:hidden;" src="fade/law50.png" alt="">
+<img id="law60"  style="display:none; visibility:hidden;" src="fade/law60.png" alt="">
+<img id="law70"  style="display:none; visibility:hidden;" src="fade/law70.png" alt="">
+<img id="law80"  style="display:none; visibility:hidden;" src="fade/law80.png" alt="">
+<img id="law90"  style="display:none; visibility:hidden;" src="fade/law90.png" alt="">
+<img id="law100"  style="display:none; visibility:hidden;" src="fade/law100.png" alt="">
+
+<img id="black10"  style="display:none; visibility:hidden;" src="fade/black10.png" alt="">
+<img id="black20"  style="display:none; visibility:hidden;" src="fade/black20.png" alt="">
+<img id="black30"  style="display:none; visibility:hidden;" src="fade/black30.png" alt="">
+<img id="black40"  style="display:none; visibility:hidden;" src="fade/black40.png" alt="">
+<img id="black50"  style="display:none; visibility:hidden;" src="fade/black50.png" alt="">
+<img id="black60"  style="display:none; visibility:hidden;" src="fade/black60.png" alt="">
+<img id="black70"  style="display:none; visibility:hidden;" src="fade/black70.png" alt="">
+<img id="black80"  style="display:none; visibility:hidden;" src="fade/black80.png" alt="">
+<img id="black90"  style="display:none; visibility:hidden;" src="fade/black90.png" alt="">
+<img id="black100"  style="display:none; visibility:hidden;" src="fade/black100.png" alt="">
+
+<img id="perktop1"  style="display:none; visibility:hidden;" src="perks/perktop1.png" alt="">
+<img id="perktop2"  style="display:none; visibility:hidden;" src="perks/perktop2.png" alt="">
+<img id="perktop3"  style="display:none; visibility:hidden;" src="perks/perktop3.png" alt="">
+<img id="perktop4"  style="display:none; visibility:hidden;" src="perks/perktop4.png" alt="">
+
+<img id="perkbottom1"  style="display:none; visibility:hidden;" src="perks/perkbottom1.png" alt="">
+<img id="perkbottom2"  style="display:none; visibility:hidden;" src="perks/perkbottom2.png" alt="">
+<img id="perkbottom3"  style="display:none; visibility:hidden;" src="perks/perkbottom3.png" alt="">
+<img id="perkbottom4"  style="display:none; visibility:hidden;" src="perks/perkbottom4.png" alt="">
+<img id="perkbottom5"  style="display:none; visibility:hidden;" src="perks/perkbottom5.png" alt="">
+
+<img id="teamA"  style="display:none; visibility:hidden;" src="gui/teamA.png" alt="">
+<img id="teamS"  style="display:none; visibility:hidden;" src="gui/teamS.png" alt="">
+<img id="teamS2"  style="display:none; visibility:hidden;" src="gui/teamS2.png" alt="">
+
+<img id="outsign"  style="display:none; visibility:hidden;" src="gui/outsign.png" alt="">
+
+
+</html> 
+
+
 
